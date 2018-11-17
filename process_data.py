@@ -6,7 +6,6 @@ from nltk.corpus import stopwords
 
 reddit_tokenizer = nltk.TweetTokenizer(strip_handles=True,reduce_len=True)
 file = open("redditdata.csv",'r')
-#reader = csv.reader(file,delimiter=",(?=([^\']*\"[^\']*\')*[^\']*$)")
 all_words = []
 data_arr = []
 
@@ -26,7 +25,7 @@ for line in file:
     num_comments = metadata[2]
     classification = metadata[3]
     title_word_pairs = [" ".join(pair) for pair in nltk.bigrams(title)]
-    #data = title + title_word_pairs #concatenate word pairs
+    #data = title + title_word_pairs #code for word pairs
     data = {}
     data['title'] = title
     data['num_comments'] = num_comments
@@ -37,7 +36,7 @@ for line in file:
     all_words.extend(data['title'])
 
 all_words_dist = nltk.FreqDist(all_words)
-#use up to 2000 words
+#use some number of most frequent words in the dataset. change number below to update
 word_features = list(all_words_dist)[:3000]
 
 def reddit_features(data):
@@ -47,7 +46,7 @@ def reddit_features(data):
     features['num_comments'] = data['num_comments']
     features['score'] = data['score']
     for word in word_features:
-        features['contains({})'.format(word)] = word_distribution[word]
+        features['contains({})'.format(word)] = word_distribution[word] > 0
     return features
 
 print("size of entire data set is ",len(data_arr))
@@ -61,7 +60,8 @@ for i in range(len(data_arr)):
 #featuresets = [(reddit_features(f),c) for (f,c) in data_arr]
 outfile = open('processed_data.csv','w')
 metafile = open('word_metadata.txt','w')
-
+#write data to csv file
+#metadata is saved in txt file in order to avoid headache formatting errors in csv
 head = list(featuresets[0][0].keys())
 ct = 0
 for i in range(len(head)):
@@ -70,6 +70,7 @@ for i in range(len(head)):
         head[i] = "word_" + str(ct)
 
         ct += 1
+#this code writes data
 outfile.write(','.join(head) + ',class')
 outfile.write('\n')
 ct = 0
@@ -79,14 +80,13 @@ for s in featuresets:
     outfile.write(','.join([str(v) for v in features.values()]))
     temp = ',' + cls
     outfile.write(temp)
-    #print(len(temp))
     ct += 1
 outfile.close()
 metafile.close()
 print(ct)
 
 
-######
+###### NLTK classifier. Works less well than WEKA
 ##test_size = len(featuresets)//10
 ##print("total number of features:", len(featuresets[0][0]))
 ##print("Begin cross validation")
