@@ -36,8 +36,10 @@ for line in file:
     all_words.extend(data['title'])
 
 all_words_dist = nltk.FreqDist(all_words)
+word_features = all_words_dist.most_common(3000)
+word_features = [word[0] for word in word_features]
 #use some number of most frequent words in the dataset. change number below to update
-word_features = list(all_words_dist)[:3000]
+#word_features = list(all_words_dist)[:3000]
 
 def reddit_features(data):
     tokens = data['title']
