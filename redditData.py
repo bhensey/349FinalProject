@@ -2,7 +2,7 @@
 import praw
 
 f = open("redditData.arff", "w+")
-subredditList = {"AskReddit":"1", "politics":"2", "worldnews":"3", "nba":"4", "funny":"5", "movies":"6"}
+subredditList = ["AskReddit", "politics", "worldnews", "nba", "funny", "movies"]
 reddit = praw.Reddit(client_id='qr7w0xIMBNVwvQ', \
                  client_secret='UBFVrgbyVWG-5_drnRX9uqkDv9w', \
                  user_agent='EECS349', \
@@ -19,8 +19,9 @@ f.write("@data" + '\n')
 # Write data from top 5 posts for each subreddit
 for subreddit in subredditList:
 	subredditObj = reddit.subreddit(subreddit)
-	for submission in subredditObj.top(limit=1000):
-		data = [str(submission.title.encode('ascii', 'ignore')), str(submission.score), str(submission.num_comments), subreddit]
+	print("Scrapping from ", subreddit)
+	for submission in subredditObj.top(limit=2000):
+		data = [str(submission.title.encode('ascii', 'ignore')), subreddit]
 
 		f.write(','.join(data)[1:] + '\n')
 		#f.write((str(u','.join(data).encode())) + '\n')
