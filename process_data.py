@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 reddit_tokenizer = nltk.TweetTokenizer(strip_handles=True,reduce_len=True)
 file = open("redditdata.csv",'r')
 all_words = []
+all_bigrams = []
 data_arr = []
 
 #parse through the csv file
@@ -21,23 +22,30 @@ for line in file:
     metadata = no_quotes.split(',')
     title = reddit_tokenizer.tokenize(title_string.lower())
     #title = [w for w in title if not w in stop_words] # removes stop words
-    score = metadata[1]
-    num_comments = metadata[2]
-    classification = metadata[3]
-    title_word_pairs = [" ".join(pair) for pair in nltk.bigrams(title)]
-    #data = title + title_word_pairs #code for word pairs
+    #score = metadata[1]
+    #num_comments = metadata[2]
+    classification = metadata[1]
+    title_string_no_punc = title_string.translate(table)
+    title_no_punc = reddit_tokenizer.tokenize(title_string_no_punc.lower())
+    title_word_pairs = [" ".join(pair) for pair in nltk.bigrams(title_no_punc)]
+    data = title + title_word_pairs #code for word pairs
+    all_bigrams.extend(title_word_pairs)
     data = {}
     data['title'] = title
-    data['num_comments'] = num_comments
-    data['score'] = score
+    #data['num_comments'] = num_comments
+    #data['score'] = score
     if not title or not classification:
         print('error occurred')
     data_arr.append((data,classification))
     all_words.extend(data['title'])
 
 all_words_dist = nltk.FreqDist(all_words)
-word_features = all_words_dist.most_common(3000)
+word_features = all_words_dist.most_common(5000)
 word_features = [word[0] for word in word_features]
+
+#bigram_dist = nltk.FreqDist(all_bigrams)
+#bigram_features = bigram_dist.most_common(2000)
+#word_features += [word[0] for word in bigram_features]
 #use some number of most frequent words in the dataset. change number below to update
 #word_features = list(all_words_dist)[:3000]
 
@@ -45,10 +53,10 @@ def reddit_features(data):
     tokens = data['title']
     word_distribution = nltk.FreqDist(tokens)
     features = {}
-    features['num_comments'] = data['num_comments']
-    features['score'] = data['score']
+    #features['num_comments'] = data['num_comments']
+    #features['score'] = data['score']
     for word in word_features:
-        features['contains({})'.format(word)] = word_distribution[word] > 0
+        features['contains({})'.format(word)] = word_distribution[word]
     return features
 
 print("size of entire data set is ",len(data_arr))
@@ -60,7 +68,7 @@ for i in range(len(data_arr)):
         print(i)
     featuresets[i] = (reddit_features(data_arr[i][0]),data_arr[i][1])
 #featuresets = [(reddit_features(f),c) for (f,c) in data_arr]
-outfile = open('processed_data.csv','w')
+outfile = open('processed_data_orig.csv','w')
 metafile = open('word_metadata.txt','w')
 #write data to csv file
 #metadata is saved in txt file in order to avoid headache formatting errors in csv
@@ -103,7 +111,7 @@ print(ct)
 ##          accuracy)
 ##print("average accuracy:", sum(acc)/len(acc));
 ##classifier.show_most_informative_features(10)
-#train_set, test_set = featuresets[test_size:],featuresets[:test_size]
-#print("beginning training")
-#classifier = nltk.NaiveBayesClassifier.train(train_set)
-#print("accuracy:",nltk.classify.accuracy(classifier,test_set))
+##train_set, test_set = featuresets[test_size:],featuresets[:test_size]
+##print("beginning training")
+##classifier = nltk.NaiveBayesClassifier.train(train_set)
+##print("accuracy:",nltk.classify.accuracy(classifier,test_set))
